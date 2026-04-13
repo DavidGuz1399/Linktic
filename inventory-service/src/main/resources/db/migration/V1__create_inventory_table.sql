@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS inventory (
+    id BINARY(16) PRIMARY KEY,
+    product_id VARCHAR(255) NOT NULL UNIQUE,
+    available INTEGER NOT NULL DEFAULT 0,
+    reserved INTEGER NOT NULL DEFAULT 0,
+    version BIGINT DEFAULT 0
+)

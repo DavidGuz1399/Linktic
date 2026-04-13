@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # Base de Datos Centralizada
+  db-mysql:
+    image: mysql:8.0
+    container_name: linktic-db
+    environment:
+      MYSQL_DATABASE: linktic
+      MYSQL_ROOT_PASSWORD: "123456"
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # Microservicio de Productos
+  products-service:
+    build: ./products-service
+    container_name: products-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      db-mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-mysql:3306/linktic?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "123456"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+  # Microservicio de Inventario
+  inventory-service:
+    build: ./inventory-service
+    container_name: inventory-api
+    ports:
+      - "8081:8081"
+    depends_on:
+      db-mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-mysql:3306/linktic?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "123456"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+  # Frontend Vue.js
+  frontend:
+    build: ./inventory-frontend
+    container_name: linktic-web
+    ports:
+      - "5173:5173"
+    stdin_open: true
+    tty: true
+
+volumes:
+  mysql_data:
